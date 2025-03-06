@@ -5,17 +5,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import ua.iib.ldapspring.service.LdapUserService;
 
 @Controller
 @RequestMapping("/")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final ActiveDirectoryService adService;
+    private final LdapUserService adService;
 
     @GetMapping
     public String showUsers(Model model) {
-        model.addAttribute("users", adService.getAllUsers());
-        return "users";
+        model.addAttribute("users", adService.getAllActiveUsersFromAD());
+        return "users-list";
     }
 }
