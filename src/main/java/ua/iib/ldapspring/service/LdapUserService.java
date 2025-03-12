@@ -22,14 +22,20 @@ public class LdapUserService {
 
 
     public List<UserDto> getAllActiveUsersFromAD() {
-
         List<UserDto> search = ldapTemplate.search(
                 "",
-                "(&(objectclass=User)(sAMAccountName=*)(!(objectClass=computer))(mail=*)(lastlogon=*)(!(userAccountControl=514)))",
+                "(&" +
+                        "(objectCategory=person)" +
+                        "(objectClass=user)" +
+                        "(mail=*)" +
+                        "(department=*)" +
+                        "((userAccountControl:1.2.840.113556.1.4.803:=2))" +
+                        ")",
                 new SearchControls(SearchControls.SUBTREE_SCOPE, 0, 0, null, false, false),
                 new UserAttributesMapper());
 
         return search.stream()
+                .filter(userDto -> !userDto.getDistinguishedName().contains("OU=Branches"))
                 .sorted(Comparator.comparing(UserDto::getName))
                 .toList();
 
@@ -42,8 +48,10 @@ public class LdapUserService {
             String name = attributes.get("cn") != null ? (String) attributes.get("cn").get() : "N/A";
             String email = attributes.get("mail") != null ? (String) attributes.get("mail").get() : "N/A";
             String login = attributes.get("sAMAccountName") != null ? String.valueOf(attributes.get("sAMAccountName").get()) : "N/A";
-
-            return new UserDto(name, email, login);
+            String department = attributes.get("department") != null ? (String) attributes.get("department").get() : "N/A";
+            String workTitle = attributes.get("description") != null ? (String) attributes.get("description").get() : "N/A";
+            String distinguishedName = attributes.get("distinguishedName") != null ? (String) attributes.get("distinguishedName").get() : "N/A";
+            return new UserDto(name, email, login, department, workTitle, distinguishedName);
         }
     }
 }

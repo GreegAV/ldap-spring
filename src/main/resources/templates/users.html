@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Редактирование пользователей AD</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h2>Редактирование пользователей Active Directory</h2>
+
+<label for="userSelect">Выберите пользователя:</label>
+<select id="userSelect">
+    <option value="">Выберите...</option>
+    <option th:each="user : ${users}" th:value="${user.login}" th:text="${user.login}"></option>
+</select>
+
+<br><br>
+
+<label for="userName">Текущее имя:</label>
+<input type="text" id="userName">
+
+<br><br>
+
+<button id="saveBtn">Сохранить</button>
+
+<script>
+    $(document).ready(function () {
+        // Подгрузка текущего имени пользователя при выборе в списке
+        $('#userSelect').change(function () {
+            let login = $(this).val();
+            if (login) {
+                $.get('/users/' + login, function (data) {
+                    $('#userName').val(data.name);
+                });
+            } else {
+                $('#userName').val('');
+            }
+        });
+
+        // Отправка нового имени на сервер
+        $('#saveBtn').click(function () {
+            let login = $('#userSelect').val();
+            let newName = $('#userName').val();
+
+            if (!login || !newName) {
+                alert('Выберите пользователя и введите имя!');
+                return;
+            }
+
+            $.ajax({
+                url: '/users/update',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ login: login, newName: newName }),
+                success: function () {
+                    alert('Имя успешно обновлено!');
+                    location.reload(); // Обновляем список
+                },
+                error: function () {
+                    alert('Ошибка при обновлении имени.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
